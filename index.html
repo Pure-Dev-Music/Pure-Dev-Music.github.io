@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
   <head>
-    <base target="_top">
     <meta charset="utf-8" />
     <title>KK Wedding – จัดตารางทีม</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <style>
       :root {
         --bg: #f4f5fb;
@@ -27,168 +31,55 @@
         backdrop-filter: blur(10px);
         background: rgba(255,255,255,0.9);
         border-bottom: 1px solid rgba(148,163,184,0.2);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 14px 26px 12px;
-        position: sticky;
-        top: 0;
-        z-index: 100;
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 14px 26px 12px; position: sticky; top: 0; z-index: 100;
       }
-      .brand {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-      }
-      .brand-circle {
-        width: 30px;
-        height: 30px;
-        border-radius: 9999px;
+      .brand { display: flex; gap: 10px; align-items: center; }
+      .brand-circle { width: 30px; height: 30px; border-radius: 9999px;
         background: linear-gradient(135deg, #6366f1, #ec4899);
-        display: grid;
-        place-items: center;
-        color: #fff;
-        font-size: 13px;
-        font-weight: 700;
-      }
-      .brand-title {
-        font-weight: 700;
-        color: var(--text);
-      }
-      .tabs {
-        background: #e2e8f0;
-        border-radius: 9999px;
-        padding: 4px;
-        display: flex;
-        gap: 4px;
-      }
-      .tab {
-        border: none;
-        background: transparent;
-        padding: 6px 16px;
-        border-radius: 9999px;
-        font-size: 13px;
-        color: #475569;
-        cursor: pointer;
-      }
-      .tab.active {
-        background: #fff;
-        color: #0f172a;
-        font-weight: 600;
-        box-shadow: 0 1px 5px rgba(15,23,42,0.13);
-      }
-      .user-badge {
-        background: #eef2ff;
-        border: 1px solid rgba(99,102,241,0.15);
-        padding: 4px 10px 4px 16px;
-        border-radius: 9999px;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .role-pill {
-        background: #6366f1;
-        color: #fff;
-        border-radius: 9999px;
-        font-size: 11px;
-        padding: 2px 8px;
-        text-transform: uppercase;
-      }
+        display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 700; }
+      .brand-title { font-weight: 700; color: var(--text); }
 
-      main {
-        max-width: 1200px;
-        margin: 16px auto;
-        padding: 0 18px 32px;
-      }
+      .tabs { background: #e2e8f0; border-radius: 9999px; padding: 4px; display: flex; gap: 4px; }
+      .tab { border: none; background: transparent; padding: 6px 16px; border-radius: 9999px; font-size: 13px; color: #475569; cursor: pointer; }
+      .tab.active { background: #fff; color: #0f172a; font-weight: 600; box-shadow: 0 1px 5px rgba(15,23,42,0.13); }
 
-      .filters {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 14px;
-      }
-      .input, .select {
-        background: #fff;
-        border: 1px solid rgba(99,102,241,0.09);
-        border-radius: 9999px;
-        padding: 6px 12px 6px 14px;
-        font-size: 13px;
-        color: #0f172a;
-        outline: none;
-      }
+      .user-badge { background: #eef2ff; border: 1px solid rgba(99,102,241,0.15);
+        padding: 4px 10px 4px 16px; border-radius: 9999px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+      .role-pill { background: #6366f1; color: #fff; border-radius: 9999px; font-size: 11px; padding: 2px 8px; text-transform: uppercase; }
+
+      main { max-width: 1200px; margin: 16px auto; padding: 0 18px 32px; }
+
+      .filters { display: flex; gap: 10px; margin-bottom: 14px; }
+      .input, .select { background: #fff; border: 1px solid rgba(99,102,241,0.09); border-radius: 9999px; padding: 6px 12px 6px 14px; font-size: 13px; color: #0f172a; outline: none; }
       .select {
         appearance: none;
         background-image: linear-gradient(45deg, transparent 50%, #94a3b8 50%), linear-gradient(135deg, #94a3b8 50%, transparent 50%);
         background-position: calc(100% - 12px) calc(50% - 3px), calc(100% - 7px) calc(50% - 3px);
-        background-size: 5px 5px, 5px 5px;
-        background-repeat: no-repeat;
-        padding-right: 24px;
+        background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 24px;
       }
 
-      .card-table {
-        background: #fff;
-        border-radius: 18px;
-        border: 1px solid rgba(148,163,184,0.25);
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(15,23,42,0.03);
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      thead {
-        background: #f8fafc;
-      }
-      th, td {
-        padding: 10px 16px;
-        font-size: 13px;
-        border-bottom: 1px solid #eef2f7;
-        text-align: left;
-      }
-      th {
-        color: #475569;
-        font-weight: 600;
-        letter-spacing: .01em;
-      }
-      tr:hover td {
-        background: rgba(99,102,241,0.03);
-      }
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        background: #eef2ff;
-        color: #4338ca;
-        padding: 1px 10px 2px;
-        border-radius: 9999px;
-        font-size: 12px;
-        margin-right: 4px;
-      }
-      .money-admin {
-        font-weight: 600;
-        color: #15803d;
-      }
-      .money-cell.hidden {
-        display: none;
-      }
+      .card-table { background: #fff; border-radius: 18px; border: 1px solid rgba(148,163,184,0.25); overflow: hidden; box-shadow: 0 10px 30px rgba(15,23,42,0.03); }
+      table { width: 100%; border-collapse: collapse; }
+      thead { background: #f8fafc; }
+      th, td { padding: 10px 16px; font-size: 13px; border-bottom: 1px solid #eef2f7; text-align: left; }
+      th { color: #475569; font-weight: 600; letter-spacing: .01em; }
+      tr:hover td { background: rgba(99,102,241,0.03); }
+      .badge { display: inline-flex; align-items: center; gap: 4px; background: #eef2ff; color: #4338ca; padding: 1px 10px 2px; border-radius: 9999px; font-size: 12px; margin-right: 4px; }
+      .money-admin { font-weight: 600; color: #15803d; }
+      .money-cell.hidden { display: none; }
+
+      .login-wrap { max-width: 420px; margin: 64px auto; padding: 28px; border: 1px solid rgba(148,163,184,0.25);
+        border-radius: 16px; background: #fff; text-align: center; box-shadow: 0 8px 24px rgba(15,23,42,.06); }
+      .login-title { margin: 0 0 10px; font-size: 20px; }
+      .login-desc { color: #475569; margin-bottom: 18px; font-size: 13px; }
 
       @media (max-width: 900px) {
         .filters { flex-wrap: wrap; }
         th:nth-child(5), td:nth-child(5),
         th:nth-child(6), td:nth-child(6),
-        th:nth-child(7), td:nth-child(7) {
-          display: none;
-        }
+        th:nth-child(7), td:nth-child(7) { display: none; }
       }
-
-        .row-past td {
-          background: #e2f6e9 !important;  /* เขียวอ่อน */
-        }
-        .row-past:hover td {
-          background: #d3f0de !important;
-        }
-
-
     </style>
   </head>
   <body>
@@ -197,17 +88,27 @@
         <div class="brand-circle">KK</div>
         <div class="brand-title">KK Wedding – จัดตารางทีม</div>
       </div>
+
       <div class="tabs">
         <button class="tab active" data-tab="all">ตารางงาน</button>
         <button class="tab" data-tab="mine">งานของฉัน</button>
         <button class="tab" data-tab="report">สรุป / จ่ายเงิน</button>
       </div>
-      <div class="user-badge" id="userBox">
-        กำลังโหลด...
-      </div>
+
+      <div class="user-badge" id="userBox">ยังไม่ได้ล็อกอิน</div>
     </header>
 
-    <main>
+    <!-- ========= LOGIN VIEW ========= -->
+    <main id="loginView" style="display:none">
+      <div class="login-wrap">
+        <h3 class="login-title">เข้าสู่ระบบ</h3>
+        <p class="login-desc">เข้าสู่ระบบด้วยบัญชี Google เพื่อดูตารางงานของทีม</p>
+        <div id="g_id_signin"></div>
+      </div>
+    </main>
+
+    <!-- ========= APP VIEW ========= -->
+    <main id="appView" style="display:none">
       <div class="filters">
         <input type="date" id="dateFilter" class="input" />
         <input type="text" id="searchFilter" class="input" placeholder="ค้นหาชื่อคู่บ่าวสาว / สถานที่..." />
@@ -231,187 +132,169 @@
             </tr>
           </thead>
           <tbody id="jobsBody">
-            <tr><td colspan="8">กำลังโหลดข้อมูล...</td></tr>
+            <tr><td colspan="8">โปรดล็อกอิน...</td></tr>
           </tbody>
         </table>
       </div>
     </main>
 
-      <script>
-      // state หลัก
-      const STATE = {
-        user: { email: "", name: "", role: "STAFF" },
-        jobs: [],
-        activeTab: "all"
-      };
+    <script>
+      /* ===================== CONFIG ===================== */
+      const CLIENT_ID  = "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com"; // ← แก้เป็นของคุณ
+      const WEB_APP_URL = "https://script.google.com/macros/s/AKfyc.../exec"; // ← URL Web App ของ Apps Script
 
-      // 1) โหลดผู้ใช้ก่อน
-      google.script.run
-        .withSuccessHandler(function(user) {
-          STATE.user = user;
+      /* ===================== STATE ====================== */
+      const STATE = { user: null, jobs: [], activeTab: "all" };
+
+      /* =================== LOGIN (GIS) ================== */
+      function initLoginUI() {
+        google.accounts.id.initialize({
+          client_id: CLIENT_ID,
+          callback: onGoogleCredential,
+          auto_select: false,
+          ux_mode: "popup"
+        });
+        google.accounts.id.renderButton(
+          document.getElementById("g_id_signin"),
+          { type: "standard", theme: "outline", size: "large", text: "signin_with" }
+        );
+        showLogin(true);
+      }
+
+      // ได้ id_token จาก Google → ส่งไป Apps Script Web App
+      async function onGoogleCredential(resp) {
+        try {
+          const id_token = resp.credential;
+
+          // 1) ตรวจ user/role
+          const meRes = await fetch(`${WEB_APP_URL}?action=me`, {
+            method: "POST",
+            headers: { "Content-Type":"application/json" },
+            body: JSON.stringify({ id_token })
+          });
+          if (!meRes.ok) throw new Error("ตรวจสิทธิ์ไม่สำเร็จ");
+          const me = await meRes.json();
+          STATE.user = me.user;
+
           renderUserBadge();
-          // พอรู้ว่าเป็นใครแล้ว ค่อยดึงงาน
-          loadJobs();
-        })
-        .getCurrentUser();
+          showLogin(false);
+
+          // 2) โหลดงาน
+          await loadJobs(id_token);
+        } catch (err) {
+          alert("ล็อกอินไม่สำเร็จ: " + (err.message || err));
+        }
+      }
+
+      function showLogin(show) {
+        document.getElementById("loginView").style.display = show ? "" : "none";
+        document.getElementById("appView").style.display   = show ? "none" : "";
+        document.getElementById("userBox").textContent = show ? "ยังไม่ได้ล็อกอิน" : "";
+      }
 
       function renderUserBadge() {
         const box = document.getElementById("userBox");
-        box.innerHTML = `
-          ${STATE.user.name || "ผู้ใช้"}
-          <span class="role-pill">${STATE.user.role}</span>
-        `;
+        if (!STATE.user) { box.textContent = "ยังไม่ได้ล็อกอิน"; return; }
+        box.innerHTML = `${STATE.user.name || STATE.user.email}
+          <span class="role-pill">${STATE.user.role}</span>`;
       }
 
-      // 2) โหลดงานจากชีตหลัก
-      function loadJobs() {
-        google.script.run
-          .withSuccessHandler(function(jobs) {
-            // jobs เป็น array ของ object
-            STATE.jobs = jobs.map(j => ({
-              ...j,
-              teamArray: j.team
-                ? j.team.split(",").map(s => s.trim()).filter(Boolean)
-                : []
-            }));
-            // 👇 ส่ง user เข้าไปด้วย
-            buildMemberFilter(STATE.jobs, STATE.user);
-            renderJobs();
-          })
-          .getWeddingJobs();
-      }
-
-      // ============================
-      // สร้าง dropdown ทีมรันคิว
-      // ============================
-      function buildMemberFilter(jobs, user) {
-        const select = document.getElementById("memberFilter");
-        // ล้างก่อน
-        select.innerHTML = "";
-        const optAll = document.createElement("option");
-        optAll.value = "";
-        optAll.textContent = "-- ทีมรันคิว --";
-        select.appendChild(optAll);
-
-        // ถ้าเป็น ADMIN → ใส่ทุกคนเหมือนเดิม
-        if (user.role === "ADMIN") {
-          const set = new Set();
-          jobs.forEach(j => j.teamArray.forEach(n => set.add(n)));
-          set.forEach(name => {
-            const opt = document.createElement("option");
-            opt.value = name;
-            opt.textContent = name;
-            select.appendChild(opt);
+      /* ================== LOAD + RENDER ================= */
+      async function loadJobs(id_token) {
+        try {
+          const res = await fetch(`${WEB_APP_URL}?action=jobs`, {
+            method: "POST",
+            headers: { "Content-Type":"application/json" },
+            body: JSON.stringify({ id_token })
           });
-          // admin เลือกได้
-          select.disabled = false;
+          if (!res.ok) throw new Error("โหลดงานไม่สำเร็จ");
+          const data = await res.json();
+
+          STATE.jobs = (data.jobs || []).map(j => ({
+            ...j,
+            teamArray: j.team ? j.team.split(",").map(s => s.trim()).filter(Boolean) : []
+          }));
+          buildMemberFilter(STATE.jobs);
+          renderJobs();
+        } catch (err) {
+          alert("โหลดงานไม่สำเร็จ: " + (err.message || err));
+        }
+      }
+
+      function buildMemberFilter(jobs) {
+        const select = document.getElementById("memberFilter");
+        select.innerHTML = '<option value="">-- ทีมรันคิว --</option>';
+        const set = new Set();
+        jobs.forEach(j => j.teamArray.forEach(n => set.add(n)));
+        Array.from(set).forEach(name => {
+          const opt = document.createElement("option");
+          opt.value = name; opt.textContent = name;
+          select.appendChild(opt);
+        });
+      }
+
+      function renderJobs() {
+        const body = document.getElementById("jobsBody");
+        body.innerHTML = "";
+
+        const selectedDate = document.getElementById("dateFilter").value;
+        const keyword = document.getElementById("searchFilter").value.toLowerCase();
+        const member = document.getElementById("memberFilter").value;
+        const isAdmin = STATE.user?.role === "ADMIN";
+
+        let jobs = [...STATE.jobs];
+
+        if (STATE.activeTab === "mine" && !isAdmin) {
+          const myName = STATE.user?.nick || STATE.user?.name || "";
+          jobs = jobs.filter(j => j.teamArray.includes(myName));
+        }
+
+        jobs = jobs.filter(j => {
+          let ok = true;
+          if (selectedDate) ok = ok && j.date === selectedDate;
+          if (keyword) {
+            ok = ok && (
+              (j.couple && j.couple.toLowerCase().includes(keyword)) ||
+              (j.place && j.place.toLowerCase().includes(keyword))
+            );
+          }
+          if (member) ok = ok && j.teamArray.includes(member);
+          return ok;
+        });
+
+        document.getElementById("thMoney").style.display = isAdmin ? "" : "none";
+
+        if (jobs.length === 0) {
+          body.innerHTML = `<tr><td colspan="8">ไม่พบข้อมูล</td></tr>`;
           return;
         }
 
-        // ถ้าไม่ใช่ ADMIN → ให้เห็นแค่ชื่อตัวเอง
-        const optMe = document.createElement("option");
-        optMe.value = user.name;
-        optMe.textContent = user.name;
-        select.appendChild(optMe);
+        jobs.forEach(j => {
+          const tr = document.createElement("tr");
+          const timeText = (j.timeStart || j.timeEnd) ? `${j.timeStart || ""} - ${j.timeEnd || ""}` : "-";
+          const moneyHtml = isAdmin ? `<span class="money-admin">ใส่เงินทีหลัง</span>` : "";
 
-        // ตั้งค่าเป็นตัวเองเลย
-        select.value = user.name;
-        // แล้วก็ล็อก dropdown ไปเลย
-        select.disabled = true;
+          tr.innerHTML = `
+            <td>${toThaiDate(j.date)}</td>
+            <td>${timeText}</td>
+            <td>${j.couple || "-"}</td>
+            <td>${j.place || "-"}</td>
+            <td>${j.mc || "-"}</td>
+            <td>${j.teamArray.map(n => `<span class="badge">${n}</span>`).join(" ")}</td>
+            <td>${j.customer || "-"}</td>
+            <td class="money-cell ${isAdmin ? "" : "hidden"}">${moneyHtml}</td>
+          `;
+          body.appendChild(tr);
+        });
       }
-function getTodayIsoThai() {
-    const now = new Date();
-    // แปลงให้เป็นเวลาประเทศไทยก่อน
-    const thaiNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
-    const y = thaiNow.getFullYear();
-    const m = String(thaiNow.getMonth() + 1).padStart(2, "0");
-    const d = String(thaiNow.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;   // เช่น 2025-11-03
-  }
-      // 3) render ตาราง
-function renderJobs() {
-  const body = document.getElementById("jobsBody");
-  body.innerHTML = "";
-
-  const selectedDate = document.getElementById("dateFilter").value;
-  const keyword = document.getElementById("searchFilter").value.toLowerCase();
-  const member = document.getElementById("memberFilter").value;
-  const isAdmin = STATE.user.role === "ADMIN";
-
-  let jobs = [...STATE.jobs];
-
-  if (STATE.activeTab === "mine" && !isAdmin) {
-    jobs = jobs.filter(j => j.teamArray.some(n => !!STATE.user.name && n === STATE.user.name));
-  }
-
-  jobs = jobs.filter(j => {
-    let ok = true;
-    if (selectedDate) ok = ok && j.date === selectedDate;
-    if (keyword) {
-      ok = ok && (
-        (j.couple && j.couple.toLowerCase().includes(keyword)) ||
-        (j.place && j.place.toLowerCase().includes(keyword))
-      );
-    }
-    if (member) ok = ok && j.teamArray.includes(member);
-    return ok;
-  });
-
-  // ซ่อนคอลัมน์เงินถ้าไม่ใช่แอดมิน
-  if (!isAdmin) {
-    document.getElementById("thMoney").style.display = "none";
-  } else {
-    document.getElementById("thMoney").style.display = "";
-  }
-
-  if (jobs.length === 0) {
-    body.innerHTML = `<tr><td colspan="8">ไม่พบข้อมูล</td></tr>`;
-    return;
-  }
-
-  // 👇 เพิ่มบรรทัดนี้ เพื่อเอาวันนี้ (ไทย) มาเทียบ
-  const todayIso = getTodayIsoThai();
-
-  jobs.forEach(j => {
-    const tr = document.createElement("tr");
-    const timeText = (j.timeStart || j.timeEnd) ? `${j.timeStart || ""} - ${j.timeEnd || ""}` : "-";
-
-    // 👇 ถ้าวันงาน < วันนี้ ให้ทำเป็นสีเขียว
-    const isPast = j.date && j.date < todayIso;
-    if (isPast) {
-      tr.classList.add("row-past");
-    }
-
-    const moneyHtml = (STATE.user.role === "ADMIN")
-      ? `<span class="money-admin">ใส่เงินทีหลัง</span>`
-      : "";
-
-    tr.innerHTML = `
-      <td>${toThaiDate(j.date)}</td>
-      <td>${timeText}</td>
-      <td>${j.couple || "-"}</td>
-      <td>${j.place || "-"}</td>
-      <td>${j.mc || "-"}</td>
-      <td>${j.teamArray.map(n => `<span class="badge">${n}</span>`).join(" ")}</td>
-      <td>${j.customer || "-"}</td>
-      <td class="money-cell ${STATE.user.role !== "ADMIN" ? "hidden" : ""}">${moneyHtml}</td>
-    `;
-    body.appendChild(tr);
-  });
-}
-
 
       function toThaiDate(iso) {
         if (!iso) return "-";
         const d = new Date(iso);
-        return d.toLocaleDateString("th-TH", {
-          day: "numeric",
-          month: "short",
-          year: "numeric"
-        });
+        return d.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
       }
 
-      // 4) events
+      /* ==================== EVENTS ===================== */
       document.querySelectorAll(".tab").forEach(btn => {
         btn.addEventListener("click", () => {
           document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
@@ -420,11 +303,15 @@ function renderJobs() {
           renderJobs();
         });
       });
-
       document.getElementById("dateFilter").addEventListener("change", renderJobs);
       document.getElementById("searchFilter").addEventListener("input", renderJobs);
       document.getElementById("memberFilter").addEventListener("change", renderJobs);
-    </script>
 
+      // ======== BOOT ========
+      window.addEventListener("load", () => {
+        if (window.google && google.accounts) initLoginUI();
+        else setTimeout(() => window.google && initLoginUI(), 400);
+      });
+    </script>
   </body>
 </html>
