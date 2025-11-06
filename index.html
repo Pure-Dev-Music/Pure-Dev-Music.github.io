@@ -172,6 +172,28 @@
         );
         showLogin(true);
       }
+function toDateAtLocal(dateStr) {           // "yyyy-MM-dd" -> Date ที่เที่ยงคืนของวันนั้น
+  const [y,m,d] = dateStr.split("-").map(Number);
+  return new Date(y, m-1, d);
+}
+function parseHM(hm) {                       // "HH:mm" -> {h,m}
+  const [h,m] = (hm||"").split(":").map(Number);
+  return { h: (h||0), m: (m||0) };
+}
+function isJobPast(j) {
+  // ถ้ามีเวลา end -> ใช้ "date + timeEnd"
+  // ถ้าไม่มี -> ใช้ปลายวันนั้น 23:59
+  const base = toDateAtLocal(j.date);
+  let end = new Date(base);
+  if (j.timeEnd && j.timeEnd !== "00:00") {
+    const {h,m} = parseHM(j.timeEnd);
+    end.setHours(h, m, 0, 0);
+  } else {
+    end.setHours(23,59,0,0);
+  }
+  const now = new Date();
+  return end < now;
+}
 
       // ได้ id_token จาก Google → ส่งไป Apps Script Web App
       async function onGoogleCredential(resp) {
@@ -207,11 +229,20 @@
       }
 
       function renderUserBadge() {
-        const box = document.getElementById("userBox");
-        if (!STATE.user) { box.textContent = "ยังไม่ได้ล็อกอิน"; return; }
-        box.innerHTML = `${STATE.user.name || STATE.user.email}
-          <span class="role-pill">${STATE.user.role}</span>`;
-      }
+  const box = document.getElementById("userBox");
+  if (!STATE.user) { box.textContent = "ยังไม่ได้ล็อกอิน"; return; }
+
+  const name = STATE.user.nick || STATE.user.name || STATE.user.email;
+  const initials = name.trim().slice(0,2).toUpperCase();
+  const role = (STATE.user.role||"").toUpperCase();
+
+  box.innerHTML = `
+    <span class="avatar">${initials}</span>
+    <span class="name">${name}</span>
+    <span class="role-pill">${role}</span>
+  `;
+}
+
 
       /* ================== LOAD + RENDER ================= */
       async function loadJobs(id_token) {
@@ -236,20 +267,39 @@
       }
 
       function buildMemberFilter(jobs) {
-        const select = document.getElementById("memberFilter");
-        select.innerHTML = '<option value="">-- ทีมรันคิว --</option>';
-        const set = new Set();
-        jobs.forEach(j => j.teamArray.forEach(n => set.add(n)));
-        Array.from(set).forEach(name => {
-          const opt = document.createElement("option");
-          opt.value = name; opt.textContent = name;
-          select.appendChild(opt);
-        });
-      }
+  const select = document.getElementById("memberFilter");
+  const isAdmin = STATE.user?.role === "ADMIN";
+  const selfName = (STATE.user?.nick || STATE.user?.name || "").trim();
+
+  if (!isAdmin) {
+    // STAFF: ล็อคให้เห็นชื่อของตัวเองเท่านั้น
+    select.innerHTML = "";
+    const opt = document.createElement("option");
+    opt.value = selfName;
+    opt.textContent = `${selfName} (ฉัน)`;
+    select.appendChild(opt);
+    select.disabled = true;
+    return;
+  }
+
+  // ADMIN: เห็นทุกชื่อ + เลือกได้
+  select.disabled = false;
+  select.innerHTML = '<option value="">-- ทีมรันคิว --</option>';
+
+  const set = new Set();
+  jobs.forEach(j => (j.teamArray||[]).forEach(n => set.add(n)));
+  Array.from(set).sort().forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name; opt.textContent = name;
+    select.appendChild(opt);
+  });
+}
+
 
       function renderJobs() {
         const body = document.getElementById("jobsBody");
         body.innerHTML = "";
+     
 
         const selectedDate = document.getElementById("dateFilter").value;
         const keyword = document.getElementById("searchFilter").value.toLowerCase();
@@ -257,7 +307,11 @@
         const isAdmin = STATE.user?.role === "ADMIN";
 
         let jobs = [...STATE.jobs];
-
+         if (!isAdmin) {
+            // STAFF: แม้ backend กรองแล้ว แต่กันพลาดอีกชั้น
+            const my = (STATE.user?.nick || STATE.user?.name || "").trim();
+            jobs = jobs.filter(j => (j.teamArray||[]).includes(my));
+         }
         if (STATE.activeTab === "mine" && !isAdmin) {
           const myName = STATE.user?.nick || STATE.user?.name || "";
           jobs = jobs.filter(j => j.teamArray.includes(myName));
@@ -283,23 +337,29 @@
           return;
         }
 
-        jobs.forEach(j => {
-          const tr = document.createElement("tr");
-          const timeText = (j.timeStart || j.timeEnd) ? `${j.timeStart || ""} - ${j.timeEnd || ""}` : "-";
-          const moneyHtml = isAdmin ? `<span class="money-admin">ใส่เงินทีหลัง</span>` : "";
-
-          tr.innerHTML = `
-            <td>${toThaiDate(j.date)}</td>
-            <td>${timeText}</td>
-            <td>${j.couple || "-"}</td>
-            <td>${j.place || "-"}</td>
-            <td>${j.mc || "-"}</td>
-            <td>${j.teamArray.map(n => `<span class="badge">${n}</span>`).join(" ")}</td>
-            <td>${j.customer || "-"}</td>
-            <td class="money-cell ${isAdmin ? "" : "hidden"}">${moneyHtml}</td>
-          `;
-          body.appendChild(tr);
-        });
+       jobs.forEach(j => {
+        const tr = document.createElement("tr");
+      
+        const timeText = (j.timeStart || j.timeEnd)
+          ? `${j.timeStart || ""} - ${j.timeEnd || ""}` : "-";
+        const isAdmin = STATE.user?.role === "ADMIN";
+        const moneyHtml = isAdmin ? `<span class="money-admin">ใส่เงินทีหลัง</span>` : "";
+      
+        // ✅ ทำแถวเขียวถ้างานผ่านไปแล้ว
+        if (isJobPast(j)) tr.classList.add("row-past");
+      
+        tr.innerHTML = `
+          <td>${toThaiDate(j.date)}</td>
+          <td>${timeText}</td>
+          <td>${j.couple || "-"}</td>
+          <td>${j.place || "-"}</td>
+          <td>${j.mc || "-"}</td>
+          <td>${(j.teamArray||[]).map(n => `<span class="badge">${n}</span>`).join(" ")}</td>
+          <td>${j.customer || "-"}</td>
+          <td class="money-cell ${isAdmin ? "" : "hidden"}">${moneyHtml}</td>
+        `;
+        body.appendChild(tr);
+      });
       }
 
       function toThaiDate(iso) {
