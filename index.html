@@ -80,6 +80,21 @@
         th:nth-child(6), td:nth-child(6),
         th:nth-child(7), td:nth-child(7) { display: none; }
       }
+      /* แถวงานที่ผ่านไปแล้ว */
+      .row-past td { 
+        background: #ecfdf5 !important;      /* เขียวอ่อน */
+      }
+      .row-past:hover td {
+        background: #d1fae5 !important;
+      }
+      
+      /* ป้ายชื่อผู้ใช้บนมุมขวา */
+      .user-badge .avatar {
+        width: 22px; height: 22px; border-radius: 9999px;
+        background: #e2e8f0; color:#334155; display:grid; place-items:center;
+        font-weight: 700; font-size:11px;
+      }
+      .user-badge .name { font-weight: 600; }
     </style>
   </head>
   <body>
