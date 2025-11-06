@@ -1,5 +1,28 @@
 const SHEET_USERS = "User";
 const SHEET_JOBS  = "คิวงาน";   // ← ชื่อชีตงานของคุณ
+function toDateAtLocal(dateStr) {           // "yyyy-MM-dd" -> Date ที่เที่ยงคืนของวันนั้น
+  const [y,m,d] = dateStr.split("-").map(Number);
+  return new Date(y, m-1, d);
+}
+function parseHM(hm) {                       // "HH:mm" -> {h,m}
+  const [h,m] = (hm||"").split(":").map(Number);
+  return { h: (h||0), m: (m||0) };
+}
+
+function isJobPast(j) {
+  // ถ้ามีเวลา end -> ใช้ "date + timeEnd"
+  // ถ้าไม่มี -> ใช้ปลายวันนั้น 23:59
+  const base = toDateAtLocal(j.date);
+  let end = new Date(base);
+  if (j.timeEnd && j.timeEnd !== "00:00") {
+    const {h,m} = parseHM(j.timeEnd);
+    end.setHours(h, m, 0, 0);
+  } else {
+    end.setHours(23,59,0,0);
+  }
+  const now = new Date();
+  return end < now;
+}
 
 function doGet(e) {
   return HtmlService.createHtmlOutputFromFile("Index")
