@@ -145,7 +145,19 @@
 
       /* ===================== STATE ====================== */
       const STATE = { user: null, jobs: [], activeTab: "all" };
-
+     function jsonp(url) {
+        return new Promise((resolve, reject) => {
+          const cb = "cb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+          const s  = document.createElement("script");
+          const onCleanup = () => { delete window[cb]; s.remove(); };
+    
+          window[cb] = (data) => { onCleanup(); resolve(data); };
+          s.onerror  = () => { onCleanup(); reject(new Error("JSONP failed")); };
+    
+          s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+          document.body.appendChild(s);
+        });
+      }
       /* =================== LOGIN (GIS) ================== */
       function initLoginUI() {
         google.accounts.id.initialize({
@@ -165,26 +177,28 @@
       async function onGoogleCredential(resp) {
         try {
           const id_token = resp.credential;
-
-          // 1) ตรวจ user/role
-          const meRes = await fetch(`${WEB_APP_URL}?action=me`, {
-            method: "POST",
-            headers: { "Content-Type":"application/json" },
-            body: JSON.stringify({ id_token })
-          });
-          if (!meRes.ok) throw new Error("ตรวจสิทธิ์ไม่สำเร็จ");
-          const me = await meRes.json();
+      
+          // 1) ตรวจ user/role (JSONP)
+          const me = await jsonp(`${WEB_APP_URL}?action=me&id_token=${encodeURIComponent(id_token)}`);
           STATE.user = me.user;
-
+      
           renderUserBadge();
           showLogin(false);
-
-          // 2) โหลดงาน
-          await loadJobs(id_token);
-        } catch (err) {
-          alert("ล็อกอินไม่สำเร็จ: " + (err.message || err));
+      
+          // 2) โหลดงาน (JSONP)
+          const data = await jsonp(`${WEB_APP_URL}?action=jobs&id_token=${encodeURIComponent(id_token)}`);
+          STATE.jobs = (data.jobs || []).map(j => ({
+            ...j,
+            teamArray: j.team ? j.team.split(",").map(s => s.trim()).filter(Boolean) : []
+          }));
+      
+          buildMemberFilter(STATE.jobs);
+          renderJobs();
+        } catch (e) {
+          alert(e.message || e);
         }
       }
+
 
       function showLogin(show) {
         document.getElementById("loginView").style.display = show ? "" : "none";
