@@ -160,8 +160,255 @@
       </div>
     </main>
 
-    <script>
-      // ... (ใช้ script เดิมของคุณได้เลย)
+     <script>
+      /* ===================== CONFIG ===================== */
+      const CLIENT_ID  = "898172037733-mmoa0doroi7i484vse3or5aqbj3oks0m.apps.googleusercontent.com"; // ← แก้เป็นของคุณ
+      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxruWmEMa-if6oLaEOjl1NRsId1B9UCV7ZyD1oUC0b7s-zvF_0zUjqp3twaGZ-AtXbUAA/exec"; // ← URL Web App ของ Apps Script
+
+      /* ===================== STATE ====================== */
+      const STATE = { user: null, jobs: [], activeTab: "all" };
+     function jsonp(url) {
+        return new Promise((resolve, reject) => {
+          const cb = "cb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+          const s  = document.createElement("script");
+          const onCleanup = () => { delete window[cb]; s.remove(); };
+    
+          window[cb] = (data) => { onCleanup(); resolve(data); };
+          s.onerror  = () => { onCleanup(); reject(new Error("JSONP failed")); };
+    
+          s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+          document.body.appendChild(s);
+        });
+      }
+      function toDateAtLocal(dateStr) {           // "yyyy-MM-dd" -> Date ที่เที่ยงคืนของวันนั้น
+      const [y,m,d] = dateStr.split("-").map(Number);
+      return new Date(y, m-1, d);
+      }
+      function parseHM(hm) {                       // "HH:mm" -> {h,m}
+        const [h,m] = (hm||"").split(":").map(Number);
+        return { h: (h||0), m: (m||0) };
+      }
+      
+      function isJobPast(j) {
+        // ถ้ามีเวลา end -> ใช้ "date + timeEnd"
+        // ถ้าไม่มี -> ใช้ปลายวันนั้น 23:59
+        const base = toDateAtLocal(j.date);
+        let end = new Date(base);
+        if (j.timeEnd && j.timeEnd !== "00:00") {
+          const {h,m} = parseHM(j.timeEnd);
+          end.setHours(h, m, 0, 0);
+        } else {
+          end.setHours(23,59,0,0);
+        }
+        const now = new Date();
+        return end < now;
+      }
+      /* =================== LOGIN (GIS) ================== */
+      function initLoginUI() {
+        google.accounts.id.initialize({
+          client_id: CLIENT_ID,
+          callback: onGoogleCredential,
+          auto_select: false,
+          ux_mode: "popup"
+        });
+        google.accounts.id.renderButton(
+          document.getElementById("g_id_signin"),
+          { type: "standard", theme: "outline", size: "large", text: "signin_with" }
+        );
+        showLogin(true);
+      }
+
+      // ได้ id_token จาก Google → ส่งไป Apps Script Web App
+      async function onGoogleCredential(resp) {
+        try {
+          const id_token = resp.credential;
+      
+          // 1) ตรวจ user/role (JSONP)
+          const me = await jsonp(`${WEB_APP_URL}?action=me&id_token=${encodeURIComponent(id_token)}`);
+          STATE.user = me.user;
+      
+          renderUserBadge();
+          showLogin(false);
+      
+          // 2) โหลดงาน (JSONP)
+          const data = await jsonp(`${WEB_APP_URL}?action=jobs&id_token=${encodeURIComponent(id_token)}`);
+          STATE.jobs = (data.jobs || []).map(j => ({
+            ...j,
+            teamArray: j.team ? j.team.split(",").map(s => s.trim()).filter(Boolean) : []
+          }));
+      
+          buildMemberFilter(STATE.jobs);
+          renderJobs();
+        } catch (e) {
+          alert(e.message || e);
+        }
+      }
+
+
+      function showLogin(show) {
+        document.getElementById("loginView").style.display = show ? "" : "none";
+        document.getElementById("appView").style.display   = show ? "none" : "";
+        document.getElementById("userBox").textContent = show ? "ยังไม่ได้ล็อกอิน" : "";
+      }
+
+      function renderUserBadge() {
+  const box = document.getElementById("userBox");
+  if (!STATE.user) { box.textContent = "ยังไม่ได้ล็อกอิน"; return; }
+
+  const name = STATE.user.nick || STATE.user.name || STATE.user.email;
+  const initials = name.trim().slice(0,2).toUpperCase();
+  const role = (STATE.user.role||"").toUpperCase();
+
+  box.innerHTML = `
+    <span class="avatar">${initials}</span>
+    <span class="name">${name}</span>
+    <span class="role-pill">${role}</span>
+  `;
+}
+
+
+      /* ================== LOAD + RENDER ================= */
+      async function loadJobs(id_token) {
+        try {
+          const res = await fetch(`${WEB_APP_URL}?action=jobs`, {
+            method: "POST",
+            headers: { "Content-Type":"application/json" },
+            body: JSON.stringify({ id_token })
+          });
+          if (!res.ok) throw new Error("โหลดงานไม่สำเร็จ");
+          const data = await res.json();
+
+          STATE.jobs = (data.jobs || []).map(j => ({
+            ...j,
+            teamArray: j.team ? j.team.split(",").map(s => s.trim()).filter(Boolean) : []
+          }));
+          buildMemberFilter(STATE.jobs);
+          renderJobs();
+        } catch (err) {
+          alert("โหลดงานไม่สำเร็จ: " + (err.message || err));
+        }
+      }
+
+      function buildMemberFilter(jobs) {
+  const select = document.getElementById("memberFilter");
+  const isAdmin = STATE.user?.role === "ADMIN";
+  const selfName = (STATE.user?.nick || STATE.user?.name || "").trim();
+
+  if (!isAdmin) {
+    // STAFF: ล็อคให้เห็นชื่อของตัวเองเท่านั้น
+    select.innerHTML = "";
+    const opt = document.createElement("option");
+    opt.value = selfName;
+    opt.textContent = `${selfName} (ฉัน)`;
+    select.appendChild(opt);
+    select.disabled = true;
+    return;
+  }
+
+  // ADMIN: เห็นทุกชื่อ + เลือกได้
+  select.disabled = false;
+  select.innerHTML = '<option value="">-- ทีมรันคิว --</option>';
+
+  const set = new Set();
+  jobs.forEach(j => (j.teamArray||[]).forEach(n => set.add(n)));
+  Array.from(set).sort().forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name; opt.textContent = name;
+    select.appendChild(opt);
+  });
+}
+
+
+      function renderJobs() {
+        const body = document.getElementById("jobsBody");
+        body.innerHTML = "";
+     
+
+        const selectedDate = document.getElementById("dateFilter").value;
+        const keyword = document.getElementById("searchFilter").value.toLowerCase();
+        const member = document.getElementById("memberFilter").value;
+        const isAdmin = STATE.user?.role === "ADMIN";
+
+        let jobs = [...STATE.jobs];
+         if (!isAdmin) {
+            // STAFF: แม้ backend กรองแล้ว แต่กันพลาดอีกชั้น
+            const my = (STATE.user?.nick || STATE.user?.name || "").trim();
+            jobs = jobs.filter(j => (j.teamArray||[]).includes(my));
+         }
+        if (STATE.activeTab === "mine" && !isAdmin) {
+          const myName = STATE.user?.nick || STATE.user?.name || "";
+          jobs = jobs.filter(j => j.teamArray.includes(myName));
+        }
+
+        jobs = jobs.filter(j => {
+          let ok = true;
+          if (selectedDate) ok = ok && j.date === selectedDate;
+          if (keyword) {
+            ok = ok && (
+              (j.couple && j.couple.toLowerCase().includes(keyword)) ||
+              (j.place && j.place.toLowerCase().includes(keyword))
+            );
+          }
+          if (member) ok = ok && j.teamArray.includes(member);
+          return ok;
+        });
+
+        document.getElementById("thMoney").style.display = isAdmin ? "" : "none";
+
+        if (jobs.length === 0) {
+          body.innerHTML = `<tr><td colspan="8">ไม่พบข้อมูล</td></tr>`;
+          return;
+        }
+
+       jobs.forEach(j => {
+        const tr = document.createElement("tr");
+      
+        const timeText = (j.timeStart || j.timeEnd)
+          ? `${j.timeStart || ""} - ${j.timeEnd || ""}` : "-";
+        const isAdmin = STATE.user?.role === "ADMIN";
+        const moneyHtml = isAdmin ? `<span class="money-admin">ใส่เงินทีหลัง</span>` : "";
+      
+        // ✅ ทำแถวเขียวถ้างานผ่านไปแล้ว
+        if (isJobPast(j)) tr.classList.add("row-past");
+      
+        tr.innerHTML = `
+          <td>${toThaiDate(j.date)}</td>
+          <td>${timeText}</td>
+          <td>${j.couple || "-"}</td>
+          <td>${j.place || "-"}</td>
+          <td>${j.mc || "-"}</td>
+          <td>${(j.teamArray||[]).map(n => `<span class="badge">${n}</span>`).join(" ")}</td>
+          <td>${j.customer || "-"}</td>
+          <td class="money-cell ${isAdmin ? "" : "hidden"}">${moneyHtml}</td>
+        `;
+        body.appendChild(tr);
+      });
+      }
+
+      function toThaiDate(iso) {
+        if (!iso) return "-";
+        const d = new Date(iso);
+        return d.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+      }
+
+      /* ==================== EVENTS ===================== */
+      document.querySelectorAll(".tab").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          STATE.activeTab = btn.dataset.tab;
+          renderJobs();
+        });
+      });
+      document.getElementById("dateFilter").addEventListener("change", renderJobs);
+      document.getElementById("searchFilter").addEventListener("input", renderJobs);
+      document.getElementById("memberFilter").addEventListener("change", renderJobs);
+
+      // ======== BOOT ========
+      window.addEventListener("load", () => {
+        if (window.google && google.accounts) initLoginUI();
+        else setTimeout(() => window.google && initLoginUI(), 400);
+      });
     </script>
   </body>
 </html>
