@@ -24,7 +24,7 @@
         background: radial-gradient(circle at top, #fef3f2, #eff6ff 55%, #f4f5fb);
         min-height: 100vh;
       }
-      header {
+      header { 
         backdrop-filter: blur(10px);
         background: rgba(255,255,255,0.9);
         border-bottom: 1px solid rgba(148,163,184,0.2);
@@ -404,7 +404,7 @@
       document.getElementById("searchFilter").addEventListener("input", renderJobs);
       document.getElementById("memberFilter").addEventListener("change", renderJobs);
 
-      // ======== BOOT ========
+      // ======== BOOT ======== pure
       window.addEventListener("load", () => {
         if (window.google && google.accounts) initLoginUI();
         else setTimeout(() => window.google && initLoginUI(), 400);
