@@ -1,6 +1,7 @@
 const SHEET_USERS = "User";
 const SHEET_JOBS  = "คิวงาน";   // ← ชื่อชีตงานของคุณ
 
+
 function doGet(e) {
   return HtmlService.createHtmlOutputFromFile("Index")
     .setTitle("KK Wedding – ตารางงานทีม")

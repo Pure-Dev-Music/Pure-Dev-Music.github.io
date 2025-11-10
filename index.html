@@ -3,9 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>KK Wedding – จัดตารางทีม</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-
-    <!-- Google Identity Services -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <style>
@@ -15,7 +13,6 @@
         --line: #e2e8f0;
         --primary: #6366f1;
         --primary-soft: rgba(99,102,241,0.09);
-        --accent: #f97316;
         --text: #0f172a;
         --muted: #64748b;
         --radius-lg: 20px;
@@ -33,25 +30,46 @@
         border-bottom: 1px solid rgba(148,163,184,0.2);
         display: flex; justify-content: space-between; align-items: center;
         padding: 14px 26px 12px; position: sticky; top: 0; z-index: 100;
+        flex-wrap: wrap; gap: 10px;
       }
       .brand { display: flex; gap: 10px; align-items: center; }
-      .brand-circle { width: 30px; height: 30px; border-radius: 9999px;
+      .brand-circle {
+        width: 30px; height: 30px; border-radius: 9999px;
         background: linear-gradient(135deg, #6366f1, #ec4899);
-        display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 700; }
+        display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 700;
+      }
       .brand-title { font-weight: 700; color: var(--text); }
 
-      .tabs { background: #e2e8f0; border-radius: 9999px; padding: 4px; display: flex; gap: 4px; }
+      .tabs { background: #e2e8f0; border-radius: 9999px; padding: 4px; display: flex; gap: 4px; flex-wrap: wrap; }
       .tab { border: none; background: transparent; padding: 6px 16px; border-radius: 9999px; font-size: 13px; color: #475569; cursor: pointer; }
       .tab.active { background: #fff; color: #0f172a; font-weight: 600; box-shadow: 0 1px 5px rgba(15,23,42,0.13); }
 
-      .user-badge { background: #eef2ff; border: 1px solid rgba(99,102,241,0.15);
-        padding: 4px 10px 4px 16px; border-radius: 9999px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+      .user-badge {
+        background: #eef2ff;
+        border: 1px solid rgba(99,102,241,0.15);
+        padding: 4px 10px 4px 16px;
+        border-radius: 9999px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
       .role-pill { background: #6366f1; color: #fff; border-radius: 9999px; font-size: 11px; padding: 2px 8px; text-transform: uppercase; }
+      .user-badge .avatar {
+        width: 22px; height: 22px; border-radius: 9999px;
+        background: #e2e8f0; color:#334155; display:grid; place-items:center;
+        font-weight: 700; font-size:11px;
+      }
+      .user-badge .name { font-weight: 600; }
 
       main { max-width: 1200px; margin: 16px auto; padding: 0 18px 32px; }
 
-      .filters { display: flex; gap: 10px; margin-bottom: 14px; }
-      .input, .select { background: #fff; border: 1px solid rgba(99,102,241,0.09); border-radius: 9999px; padding: 6px 12px 6px 14px; font-size: 13px; color: #0f172a; outline: none; }
+      .filters { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+      .input, .select {
+        background: #fff; border: 1px solid rgba(99,102,241,0.09);
+        border-radius: 9999px; padding: 6px 12px 6px 14px;
+        font-size: 13px; color: #0f172a; outline: none;
+      }
       .select {
         appearance: none;
         background-image: linear-gradient(45deg, transparent 50%, #94a3b8 50%), linear-gradient(135deg, #94a3b8 50%, transparent 50%);
@@ -60,45 +78,48 @@
       }
 
       .card-table { background: #fff; border-radius: 18px; border: 1px solid rgba(148,163,184,0.25); overflow: hidden; box-shadow: 0 10px 30px rgba(15,23,42,0.03); }
-      table { width: 100%; border-collapse: collapse; }
-      thead { background: #f8fafc; }
-      th, td { padding: 10px 16px; font-size: 13px; border-bottom: 1px solid #eef2f7; text-align: left; }
+      .table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table { width: 100%; border-collapse: collapse; min-width: 700px; }
+      thead { background: #f8fafc; position: sticky; top: 0; z-index: 1; }
+      th, td { padding: 10px 16px; font-size: 13px; border-bottom: 1px solid #eef2f7; text-align: left; white-space: nowrap; }
       th { color: #475569; font-weight: 600; letter-spacing: .01em; }
       tr:hover td { background: rgba(99,102,241,0.03); }
-      .badge { display: inline-flex; align-items: center; gap: 4px; background: #eef2ff; color: #4338ca; padding: 1px 10px 2px; border-radius: 9999px; font-size: 12px; margin-right: 4px; }
+      .badge { display: inline-block; background: #f1f5f9; border-radius: 9999px; padding: 2px 6px; margin: 1px; font-size: 13px; white-space: nowrap; }
       .money-admin { font-weight: 600; color: #15803d; }
       .money-cell.hidden { display: none; }
+
+      /* แถวงานที่ผ่านไปแล้ว */
+      .row-past td { background: #90F4C5 !important; }
+      .row-past:hover td { background: #d1fae5 !important; }
 
       .login-wrap { max-width: 420px; margin: 64px auto; padding: 28px; border: 1px solid rgba(148,163,184,0.25);
         border-radius: 16px; background: #fff; text-align: center; box-shadow: 0 8px 24px rgba(15,23,42,.06); }
       .login-title { margin: 0 0 10px; font-size: 20px; }
       .login-desc { color: #475569; margin-bottom: 18px; font-size: 13px; }
 
-      @media (max-width: 900px) {
-        .filters { flex-wrap: wrap; }
-        th:nth-child(5), td:nth-child(5),
-        th:nth-child(6), td:nth-child(6),
-        th:nth-child(7), td:nth-child(7) { display: none; }
+      @media (max-width: 768px) {
+        main { padding: 0.5rem; }
+        .filters { flex-direction: column; align-items: stretch; }
+        table { font-size: 14px; }
+        th, td { padding: 6px 8px; }
       }
     </style>
   </head>
+
   <body>
     <header>
       <div class="brand">
         <div class="brand-circle">KK</div>
         <div class="brand-title">KK Wedding – จัดตารางทีม</div>
       </div>
-
       <div class="tabs">
         <button class="tab active" data-tab="all">ตารางงาน</button>
         <button class="tab" data-tab="mine">งานของฉัน</button>
         <button class="tab" data-tab="report">สรุป / จ่ายเงิน</button>
       </div>
-
       <div class="user-badge" id="userBox">ยังไม่ได้ล็อกอิน</div>
     </header>
 
-    <!-- ========= LOGIN VIEW ========= -->
     <main id="loginView" style="display:none">
       <div class="login-wrap">
         <h3 class="login-title">เข้าสู่ระบบ</h3>
@@ -107,7 +128,6 @@
       </div>
     </main>
 
-    <!-- ========= APP VIEW ========= -->
     <main id="appView" style="display:none">
       <div class="filters">
         <input type="date" id="dateFilter" class="input" />
@@ -118,34 +138,71 @@
       </div>
 
       <div class="card-table">
-        <table>
-          <thead>
-            <tr>
-              <th>วันที่</th>
-              <th>เวลา</th>
-              <th>คู่บ่าวสาว</th>
-              <th>สถานที่</th>
-              <th>นายพิธี</th>
-              <th>ทีมรันคิว</th>
-              <th>ลูกค้า</th>
-              <th id="thMoney">ค่าทีม</th>
-            </tr>
-          </thead>
-          <tbody id="jobsBody">
-            <tr><td colspan="8">โปรดล็อกอิน...</td></tr>
-          </tbody>
-        </table>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>วันที่</th>
+                <th>เวลา</th>
+                <th>คู่บ่าวสาว</th>
+                <th>สถานที่</th>
+                <th>นายพิธี</th>
+                <th>ทีมรันคิว</th>
+                <th>ลูกค้า</th>
+                <th id="thMoney">ค่าทีม</th>
+              </tr>
+            </thead>
+            <tbody id="jobsBody">
+              <tr><td colspan="8">โปรดล็อกอิน...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
 
-    <script>
+     <script>
       /* ===================== CONFIG ===================== */
       const CLIENT_ID  = "898172037733-mmoa0doroi7i484vse3or5aqbj3oks0m.apps.googleusercontent.com"; // ← แก้เป็นของคุณ
       const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxruWmEMa-if6oLaEOjl1NRsId1B9UCV7ZyD1oUC0b7s-zvF_0zUjqp3twaGZ-AtXbUAA/exec"; // ← URL Web App ของ Apps Script
 
       /* ===================== STATE ====================== */
       const STATE = { user: null, jobs: [], activeTab: "all" };
-
+     function jsonp(url) {
+        return new Promise((resolve, reject) => {
+          const cb = "cb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+          const s  = document.createElement("script");
+          const onCleanup = () => { delete window[cb]; s.remove(); };
+    
+          window[cb] = (data) => { onCleanup(); resolve(data); };
+          s.onerror  = () => { onCleanup(); reject(new Error("JSONP failed")); };
+    
+          s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+          document.body.appendChild(s);
+        });
+      }
+      function toDateAtLocal(dateStr) {           // "yyyy-MM-dd" -> Date ที่เที่ยงคืนของวันนั้น
+      const [y,m,d] = dateStr.split("-").map(Number);
+      return new Date(y, m-1, d);
+      }
+      function parseHM(hm) {                       // "HH:mm" -> {h,m}
+        const [h,m] = (hm||"").split(":").map(Number);
+        return { h: (h||0), m: (m||0) };
+      }
+      
+      function isJobPast(j) {
+        // ถ้ามีเวลา end -> ใช้ "date + timeEnd"
+        // ถ้าไม่มี -> ใช้ปลายวันนั้น 23:59
+        const base = toDateAtLocal(j.date);
+        let end = new Date(base);
+        if (j.timeEnd && j.timeEnd !== "00:00") {
+          const {h,m} = parseHM(j.timeEnd);
+          end.setHours(h, m, 0, 0);
+        } else {
+          end.setHours(23,59,0,0);
+        }
+        const now = new Date();
+        return end < now;
+      }
       /* =================== LOGIN (GIS) ================== */
       function initLoginUI() {
         google.accounts.id.initialize({
@@ -165,26 +222,28 @@
       async function onGoogleCredential(resp) {
         try {
           const id_token = resp.credential;
-
-          // 1) ตรวจ user/role
-          const meRes = await fetch(`${WEB_APP_URL}?action=me`, {
-            method: "POST",
-            headers: { "Content-Type":"application/json" },
-            body: JSON.stringify({ id_token })
-          });
-          if (!meRes.ok) throw new Error("ตรวจสิทธิ์ไม่สำเร็จ");
-          const me = await meRes.json();
+      
+          // 1) ตรวจ user/role (JSONP)
+          const me = await jsonp(`${WEB_APP_URL}?action=me&id_token=${encodeURIComponent(id_token)}`);
           STATE.user = me.user;
-
+      
           renderUserBadge();
           showLogin(false);
-
-          // 2) โหลดงาน
-          await loadJobs(id_token);
-        } catch (err) {
-          alert("ล็อกอินไม่สำเร็จ: " + (err.message || err));
+      
+          // 2) โหลดงาน (JSONP)
+          const data = await jsonp(`${WEB_APP_URL}?action=jobs&id_token=${encodeURIComponent(id_token)}`);
+          STATE.jobs = (data.jobs || []).map(j => ({
+            ...j,
+            teamArray: j.team ? j.team.split(",").map(s => s.trim()).filter(Boolean) : []
+          }));
+      
+          buildMemberFilter(STATE.jobs);
+          renderJobs();
+        } catch (e) {
+          alert(e.message || e);
         }
       }
+
 
       function showLogin(show) {
         document.getElementById("loginView").style.display = show ? "" : "none";
@@ -193,11 +252,20 @@
       }
 
       function renderUserBadge() {
-        const box = document.getElementById("userBox");
-        if (!STATE.user) { box.textContent = "ยังไม่ได้ล็อกอิน"; return; }
-        box.innerHTML = `${STATE.user.name || STATE.user.email}
-          <span class="role-pill">${STATE.user.role}</span>`;
-      }
+  const box = document.getElementById("userBox");
+  if (!STATE.user) { box.textContent = "ยังไม่ได้ล็อกอิน"; return; }
+
+  const name = STATE.user.nick || STATE.user.name || STATE.user.email;
+  const initials = name.trim().slice(0,2).toUpperCase();
+  const role = (STATE.user.role||"").toUpperCase();
+
+  box.innerHTML = `
+    <span class="avatar">${initials}</span>
+    <span class="name">${name}</span>
+    <span class="role-pill">${role}</span>
+  `;
+}
+
 
       /* ================== LOAD + RENDER ================= */
       async function loadJobs(id_token) {
@@ -222,20 +290,39 @@
       }
 
       function buildMemberFilter(jobs) {
-        const select = document.getElementById("memberFilter");
-        select.innerHTML = '<option value="">-- ทีมรันคิว --</option>';
-        const set = new Set();
-        jobs.forEach(j => j.teamArray.forEach(n => set.add(n)));
-        Array.from(set).forEach(name => {
-          const opt = document.createElement("option");
-          opt.value = name; opt.textContent = name;
-          select.appendChild(opt);
-        });
-      }
+  const select = document.getElementById("memberFilter");
+  const isAdmin = STATE.user?.role === "ADMIN";
+  const selfName = (STATE.user?.nick || STATE.user?.name || "").trim();
+
+  if (!isAdmin) {
+    // STAFF: ล็อคให้เห็นชื่อของตัวเองเท่านั้น
+    select.innerHTML = "";
+    const opt = document.createElement("option");
+    opt.value = selfName;
+    opt.textContent = `${selfName} (ฉัน)`;
+    select.appendChild(opt);
+    select.disabled = true;
+    return;
+  }
+
+  // ADMIN: เห็นทุกชื่อ + เลือกได้
+  select.disabled = false;
+  select.innerHTML = '<option value="">-- ทีมรันคิว --</option>';
+
+  const set = new Set();
+  jobs.forEach(j => (j.teamArray||[]).forEach(n => set.add(n)));
+  Array.from(set).sort().forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name; opt.textContent = name;
+    select.appendChild(opt);
+  });
+}
+
 
       function renderJobs() {
         const body = document.getElementById("jobsBody");
         body.innerHTML = "";
+     
 
         const selectedDate = document.getElementById("dateFilter").value;
         const keyword = document.getElementById("searchFilter").value.toLowerCase();
@@ -243,7 +330,11 @@
         const isAdmin = STATE.user?.role === "ADMIN";
 
         let jobs = [...STATE.jobs];
-
+         if (!isAdmin) {
+            // STAFF: แม้ backend กรองแล้ว แต่กันพลาดอีกชั้น
+            const my = (STATE.user?.nick || STATE.user?.name || "").trim();
+            jobs = jobs.filter(j => (j.teamArray||[]).includes(my));
+         }
         if (STATE.activeTab === "mine" && !isAdmin) {
           const myName = STATE.user?.nick || STATE.user?.name || "";
           jobs = jobs.filter(j => j.teamArray.includes(myName));
@@ -269,23 +360,29 @@
           return;
         }
 
-        jobs.forEach(j => {
-          const tr = document.createElement("tr");
-          const timeText = (j.timeStart || j.timeEnd) ? `${j.timeStart || ""} - ${j.timeEnd || ""}` : "-";
-          const moneyHtml = isAdmin ? `<span class="money-admin">ใส่เงินทีหลัง</span>` : "";
-
-          tr.innerHTML = `
-            <td>${toThaiDate(j.date)}</td>
-            <td>${timeText}</td>
-            <td>${j.couple || "-"}</td>
-            <td>${j.place || "-"}</td>
-            <td>${j.mc || "-"}</td>
-            <td>${j.teamArray.map(n => `<span class="badge">${n}</span>`).join(" ")}</td>
-            <td>${j.customer || "-"}</td>
-            <td class="money-cell ${isAdmin ? "" : "hidden"}">${moneyHtml}</td>
-          `;
-          body.appendChild(tr);
-        });
+       jobs.forEach(j => {
+        const tr = document.createElement("tr");
+      
+        const timeText = (j.timeStart || j.timeEnd)
+          ? `${j.timeStart || ""} - ${j.timeEnd || ""}` : "-";
+        const isAdmin = STATE.user?.role === "ADMIN";
+        const moneyHtml = isAdmin ? `<span class="money-admin">ใส่เงินทีหลัง</span>` : "";
+      
+        // ✅ ทำแถวเขียวถ้างานผ่านไปแล้ว
+        if (isJobPast(j)) tr.classList.add("row-past");
+      
+        tr.innerHTML = `
+          <td>${toThaiDate(j.date)}</td>
+          <td>${timeText}</td>
+          <td>${j.couple || "-"}</td>
+          <td>${j.place || "-"}</td>
+          <td>${j.mc || "-"}</td>
+          <td>${(j.teamArray||[]).map(n => `<span class="badge">${n}</span>`).join(" ")}</td>
+          <td>${j.customer || "-"}</td>
+          <td class="money-cell ${isAdmin ? "" : "hidden"}">${moneyHtml}</td>
+        `;
+        body.appendChild(tr);
+      });
       }
 
       function toThaiDate(iso) {
